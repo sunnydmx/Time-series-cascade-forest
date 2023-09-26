@@ -757,7 +757,8 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     @property
     def n_aug_features_(self):
         if not hasattr(self, "use_custom_estimator"):
-            return 2 * self.n_estimators * self.n_outputs_
+            # return 2 * self.n_estimators * self.n_outputs_
+            return self.n_estimators * self.n_outputs_
         else:
             return self.n_estimators * self.n_outputs_
 
@@ -1488,10 +1489,20 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         else:
             if self.n_layers_ > 1:
                 proba = layer.predict_full(X_middle_test_)
+                # print("1")
+                # print(proba)
+                rep = proba
                 proba = _utils.merge_proba(proba, self.n_outputs_)
+                # print("2")
+                # print(proba)
+
             else:
                 # Directly merge results with one cascade layer only
                 proba = _utils.merge_proba(X_aug_test_, self.n_outputs_)
+                # print("3")
+                rep = X_aug_test_
+                # print(X_aug_test_)
+
         return proba
 
     def predict(self, X):
@@ -1511,7 +1522,6 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         """
         proba = self.predict_proba(X)
         y = self._decode_class_labels(np.argmax(proba, axis=1))
-        # print(y)
         return y
 
     def mg_scanning(self, X, y=None):

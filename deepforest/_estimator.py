@@ -3,7 +3,7 @@
 
 __all__ = ["Estimator"]
 
-from .forest import RandomForestClassifiers, ExtraTreesClassifier, ShapeletForestClassifier, PairShapeletForestClassifier, ProximityForestClassifier
+from .forest import RandomForestClassifiers, ExtraTreesClassifier, ShapeletForestClassifier, PairShapeletForestClassifier, ProximityForestClassifier, DrCIF, SupervisedTimeSeriesForest
 # from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 
 
@@ -55,6 +55,12 @@ def make_estimator(
         # )
         print(n_trees)
         estimator = ProximityForestClassifier(n_estimators=n_trees, max_depth=2**31)
+    elif name == "DrCIF":
+        print(n_trees)
+        estimator = DrCIF(n_estimators=n_trees)
+    elif name == "STSF":
+        print(n_trees)
+        estimator = SupervisedTimeSeriesForest(n_estimators=n_trees)
     else:
         msg = "Unknown type of estimator, which should be one of {{rf, erf}}."
         raise NotImplementedError(msg)
@@ -83,6 +89,7 @@ class Estimator(object):
                                          backend,
                                          n_jobs,
                                          random_state)
+        self.name = name
 
     @property
     def feature_importances_(self):
@@ -95,7 +102,10 @@ class Estimator(object):
 
     def fit_transform(self, X, y):
         self.estimator_.fit(X, y)
-        X_aug = self.estimator_.oob_decision_function_
+        if self.name == 'DrCIF':
+            X_aug = self.estimator_._get_train_probs(X, y)
+        else:
+            X_aug = self.estimator_.oob_decision_function_
 
         return X_aug
 

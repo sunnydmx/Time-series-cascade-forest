@@ -72,7 +72,7 @@ class BaseCascadeLayer(BaseEstimator):
         self.layer_idx = layer_idx
         self.n_outputs = n_outputs
         self.criterion = criterion
-        self.n_estimators = n_estimators * 2  # internal conversion
+        self.n_estimators = n_estimators * 1  # internal conversion
         self.n_trees = n_trees
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
@@ -218,31 +218,12 @@ class ClassificationCascadeLayer(BaseCascadeLayer, ClassifierMixin):
                 self.verbose,
                 sample_weight,
             )
-            # # 无需划分训练集和测试集
-            # estimator = RandomForestClassifier(n_estimators=50, oob_score=True, criterion="gini", max_features='sqrt')
-            # # _estimator = _estimator.fit(X, y)
-            # #
-            # # # 重要属性oob_score_
-            # # X_aug_ = _estimator.oob_score_
-            #
-            # _estimator = BaggingClassifier(
-            #     base_estimator=estimator,
-            #     bootstrap=True,
-            #     n_jobs=-1,
-            #     n_estimators=50,
-            #     random_state=1,
-            #     oob_score=True
-            # )
-            # X = X.reshape(n_samples, X.shape[1] * X.shape[-1])
-            # _estimator.fit(X, y, sample_weight=sample_weight)
-            # X_aug_ = _estimator.oob_decision_function_
-
-            # print(type(X_aug_))
-            X_aug.append(X_aug_)
+            X_aug.append(X_aug_)  # 两类
+            # print(X_aug)
             key = "{}-{}-{}".format(self.layer_idx, estimator_idx, "rf")
             self.estimators_.update({key: _estimator})
             print("random forest complete")
-        # self.n_estimators // 2
+
         for estimator_idx in range(1):
             X_aug_, _estimator = _build_estimator(
                 X,
@@ -257,25 +238,7 @@ class ClassificationCascadeLayer(BaseCascadeLayer, ClassifierMixin):
                 self.verbose,
                 sample_weight,
             )
-            # _estimator = RandomForestClassifier(n_estimators=50, oob_score=True, criterion="gini", max_features=1)
-            # _estimator = _estimator.fit(X, y)
-            #
-            # # 重要属性oob_score_
-            # X_aug_ = _estimator.oob_score_
 
-            # _estimator = BaggingClassifier(
-            #     base_estimator=estimator,
-            #     bootstrap=True,
-            #     n_jobs=-1,
-            #     n_estimators=50,
-            #     random_state=1,
-            #     oob_score=True
-            # )
-            # X = X.reshape(n_samples, X.shape[1] * X.shape[-1])
-            # _estimator.fit(X, y, sample_weight=sample_weight)
-            # X_aug_ = _estimator.oob_decision_function_
-
-            # print(type(X_aug_))
             X_aug.append(X_aug_)
             key = "{}-{}-{}".format(self.layer_idx, estimator_idx, "erf")
             self.estimators_.update({key: _estimator})
@@ -325,18 +288,59 @@ class ClassificationCascadeLayer(BaseCascadeLayer, ClassifierMixin):
                 y,
                 self.layer_idx,
                 estimator_idx,
-                "proximity forest",
-                self._make_estimator(estimator_idx, "proximity forest"),
+                "DrCIF",
+                self._make_estimator(estimator_idx, "DrCIF"),
                 oob_decision_function,
                 self.partial_mode,
                 self.buffer,
                 self.verbose,
             )
-            print("proximity forest complete")
+            print("DrCIF complete")
             # print(type(X_aug_))
             X_aug.append(X_aug_)
-            key = "{}-{}-{}".format(self.layer_idx, estimator_idx, "proximity forest")
+            key = "{}-{}-{}".format(self.layer_idx, estimator_idx, "drcif")
             self.estimators_.update({key: _estimator})
+
+        # for estimator_idx in range(1):
+        #     X_aug_, _estimator = _build_estimator(
+        #         X,
+        #         y,
+        #         self.layer_idx,
+        #         estimator_idx,
+        #         "proximity forest",
+        #         self._make_estimator(estimator_idx, "proximity forest"),
+        #         oob_decision_function,
+        #         self.partial_mode,
+        #         self.buffer,
+        #         self.verbose,
+        #     )
+        #     print("proximity forest complete")
+        #     # print(type(X_aug_))
+        #     X_aug.append(X_aug_)
+        #     key = "{}-{}-{}".format(self.layer_idx, estimator_idx, "proximity forest")
+        #     self.estimators_.update({key: _estimator})
+
+
+        #
+        # for estimator_idx in range(1):
+        #     X_aug_, _estimator = _build_estimator(
+        #         X,
+        #         y,
+        #         self.layer_idx,
+        #         estimator_idx,
+        #         "STSF",
+        #         self._make_estimator(estimator_idx, "STSF"),
+        #         oob_decision_function,
+        #         self.partial_mode,
+        #         self.buffer,
+        #         self.verbose,
+        #     )
+        #     print("STSF complete")
+        #     # print(type(X_aug_))
+        #     X_aug.append(X_aug_)
+        #     key = "{}-{}-{}".format(self.layer_idx, estimator_idx, "proximity forest")
+        #     self.estimators_.update({key: _estimator})
+
 
         # Set the OOB estimations and validation accuracy
         # print(self.n_estimators)
